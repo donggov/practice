@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="/webjars/sockjs-client/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <div>Welcome</div>
+
+    <div>
+        <span>
+            <input id="message" />
+        </span>
+
+        <span>
+            <button id="send">Send</button>
+        </span>
+    </div>
+
+    <div id="content"></div>
+
+</body>
+</html>
+
+<script>
+    document.getElementById("send").addEventListener("click", function () {
+        stompClient.send("/app/chat", {}, JSON.stringify({
+            'message' : $("#message").val(),
+        }));
+    });
+
+    var sock = new SockJS('http://localhost:8080/ws');
+    var stompClient = Stomp.over(sock);
+
+    stompClient.connect({}, connectCallback);
+
+    function connectCallback(frame) {
+        console.log(frame);
+        stompClient.subscribe('/user/queue/messages', function(message) {
+            console.log(message.body);
+            $("#content").append("<div>" + message.body + "</div>");
+        });
+    }
+
+    function errorCallback() {
+        console.log("errorCallback");
+    }
+
+    function closeEventCallback() {
+        console.log("errorCallback");
+    }
+
+</script>
